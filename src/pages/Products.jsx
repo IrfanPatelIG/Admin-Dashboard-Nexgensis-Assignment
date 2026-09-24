@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import '../App.css'
 import { getProducts } from '../api/productApi'
 
 function Products() {
+    const navigate = useNavigate()
+    
   const [products, setProducts] = useState([])
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(0)
 
   const [pageSize, setPageSize] = useState(10)
   const [totalProducts, setTotalProducts] = useState(0)
+
+
+  const handleLogout = () => {
+    localStorage.removeItem("token")
+    navigate("/login")
+  }
 
   // https://dummyjson.com/products?limit=100&skip=10
   const fetchProducts = async() => {
@@ -34,11 +43,16 @@ function Products() {
   }
 
   return (
-    <div className='App'>
+    <div className='App font-sans'>
+        <nav className='flex justify-between items-center py-4 px-20 sticky top-0 bg-secondary z-10'>
+            <h1 className='text-3xl font-bold '>Products</h1>
+            <button className='btn-primary' onClick={handleLogout}>Logout</button>
+        </nav>
+
       {
-        products.length > 0 && (<div className='products'>
+        products.length > 0 && (<div className='products px-20'>
           {products.map((prod) => {
-              return <span className='product-single' key={prod.id}>
+              return <span className='product-single bg-product-card hover:bg-[#212121] hover:scale-105 hover:rounded-2xl transition-all ease-in-out' key={prod.id}>
                   <img className='product-img' src={prod.thumbnail} alt={prod.title} />
                   <span>{prod.title}</span>
                 </span>
@@ -48,20 +62,18 @@ function Products() {
 
       {products.length > 0 && (
         
-        <div className='pagination'>
+        <div className='pagination bg-secondary'>
           <div className="pagination-info">
             <span>
               Showing {(page - 1) * pageSize + 1}–
-              {Math.min(page * pageSize, totalPages * pageSize)} of {totalProducts}
+              {Math.min(page * pageSize, totalProducts)} of {totalProducts}
             </span>
 
-            <select
-              value={pageSize}
-              onChange={(event) => {
-                setPageSize(Number(event.target.value))
+            <select value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value))
                 setPage(1)
-              }}
-            >
+              }}>
               <option value={10}>10</option>
               <option value={20}>20</option>
               <option value={50}>50</option>

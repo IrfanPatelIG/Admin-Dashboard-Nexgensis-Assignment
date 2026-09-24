@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 function Login() {
     const navigate = useNavigate()
-
+    
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
 
@@ -35,20 +35,22 @@ function Login() {
 
         <form onSubmit={handleSubmit} 
         className='flex flex-col gap-3 w-full items-center *:flex *:gap-3 *:justify-center'>
-            <div>
-                <label>Uername</label>
-                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder='Enter username'/>
+            <div className='input-parent'>
+                <label className='flex-1'>Username:</label>
+                <input type="text" required value={username} onChange={(e) => setUsername(e.target.value)} placeholder='Enter username'
+                className='border-b'/>
             </div>
 
-            <div>
-                <label>Password</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder='Enter password'/>
+            <div className='input-parent'>
+                <label className='flex-1'>Password:</label>
+                <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder='Enter password'
+                className='border-b'/>
             </div>
 
-            {error && <p className='mt-3 text-red-700'>{error}</p>}
+            <p className={`opcaity-0 py-3 mt-3 text-red-700 ${error && "opacity-100 p-0!"}`}>{error}</p>
 
-            <button className='w-[120px] mt-3 px-2 py-1 border rounded-2xl'
-             type="submit" disabled={isSubmitting}>{isSubmitting? "Loggin in..." : "Login"}</button>
+            <button className='btn-primary mt-3'
+             type="submit" disabled={isSubmitting}>{isSubmitting? "Logging in..." : "Login"}</button>
         </form>
     </div>
     )
