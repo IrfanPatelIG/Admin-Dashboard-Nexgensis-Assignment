@@ -21,6 +21,17 @@
   .input-parent {
     @apply flex w-full;
   }
+
+  .table-head-cell {
+    @apply border border-gray-300;
+  }
+  .table-data-cell {
+    @apply border border-gray-300 px-2;
+  }
+
+  .page-btn {
+    @apply py-2 px-3 border cursor-pointer select-none;
+  }
 }
 
 :root {
@@ -32,30 +43,6 @@
 body {
   color: white;
   margin: 0 !important;
-}
-
-.products {
-  margin: 20px 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 30px;
-}
-
-.product-single {
-  height: 250px;  
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.product-img {
-  width: 100%;
-  height: 90%;
-  object-fit: contain;
 }
 
 .pagination {
@@ -71,28 +58,6 @@ body {
   justify-content: center;
   align-items: center;
   gap: 20px;
-}
-
-.pagination-info {
-  display: flex;
-  flex: 1;
-  align-items: start;
-  gap: 12px;
-}
-
-.pagination-btns {
-  display: flex;
-  flex: 1;
-}
-
-.pagination-btns > span {
-  padding: 8px 12px;
-  border: 1px solid white;
-  cursor: pointer;
-  user-select: none;
-  &:first-child, &:last-child {
-    margin-inline: 5px;
-  }
 }
 
 .pagination-selected {
