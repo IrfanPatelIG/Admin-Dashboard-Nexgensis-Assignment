@@ -23,15 +23,9 @@ function App() {
     console.log(data)
   }
 
-  console.log(products)
-
-  // useEffect(() => {
-  //   fetchProducts()
-  // }, [])
-
-    useEffect(() => {
-      fetchProducts()
-    }, [page, pageSize])
+  useEffect(() => {
+    fetchProducts()
+  }, [page, pageSize])
 
   function selectedPageHandler(selectedPage) {
     if (selectedPage > 0 && selectedPage <= totalPages) {
@@ -90,31 +84,3 @@ function App() {
 }
 
 export default App
-
-
-// For Front-end based pagination
-
-// <div className='App'>
-//   {
-//     products.length > 0 && (<div className='products'>
-//       {products.slice(page * 10 - 10, page * 10).map((prod) => {
-//           return <span className='product-single' key={prod.id}>
-//               <img className='product-img' src={prod.thumbnail} alt={prod.title} />
-//               <span>{prod.title}</span>
-//             </span>
-//         })}
-//     </div>)
-//   }
-
-//   {products.length > 0 && (
-//     <div className='pagination'>
-//       <span className={page === 1? "pagination-disabled" : ""} onClick={() => { selectedPageHandler(page-1) }}>◀</span>
-//       {
-//         [...Array(products.length/10)].map((e, i) => {
-//           return <span className={page === i+1? "pagination-selected" : ""} onClick={() => { selectedPageHandler(i+1) }} key={i}>{i+1}</span>
-//         })
-//       }
-//       <span className={page >= products.length/10? "pagination-disabled" : ""} onClick={() => { selectedPageHandler(page+1) }}>▶</span>
-//     </div>
-//   )}
-// </div>
