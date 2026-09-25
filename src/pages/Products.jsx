@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../App.css'
-import { getProducts, searchProducts, getCategories, getProductsByCategory } from '../api/productApi'
+import { getProducts, searchProducts, 
+        getCategories, getProductsByCategory, 
+        getAllProductsByCategory, getAllProducts } from '../api/productApi'
 
 function Products() {
     const navigate = useNavigate()
@@ -19,6 +21,8 @@ function Products() {
     const [categories, setCategories] = useState([])
     const [selectedCategory, setSelectedCategory] = useState("")
 
+    const [sortBy, setSortBy] = useState("")
+
 
     useEffect(() => {
         const searchTimer = setTimeout(() => {
@@ -29,19 +33,137 @@ function Products() {
         return () => clearTimeout(searchTimer)
     }, [search])
 
+    const sortProducts = (products) => {
+        const sortedProducts = [...products]
+
+        switch (sortBy) {
+            case "price-asc":
+                return sortedProducts.sort((a, b) => a.price - b.price)
+
+            case "price-desc":
+                return sortedProducts.sort((a, b) => b.price - a.price)
+
+            case "rating-asc":
+                return sortedProducts.sort((a, b) => a.rating - b.rating)
+
+            case "rating-desc":
+                return sortedProducts.sort((a, b) => b.rating - a.rating)
+
+            case "title-asc":
+                return sortedProducts.sort((a, b) =>
+                    a.title.localeCompare(b.title)
+                )
+
+            case "title-desc":
+                return sortedProducts.sort((a, b) =>
+                    b.title.localeCompare(a.title)
+                )
+
+            default:
+                return sortedProducts
+        }
+    }
+
+    const paginateProducts = (products, skip) => {
+        const sortedProducts = sortProducts(products)
+
+        return sortedProducts.slice(skip, skip + pageSize)
+    }
+
     // https://dummyjson.com/products?limit=100&skip=10
     const fetchProducts = async (signal) => {
         const skip = (page - 1) * pageSize
 
+        // SORTING ACTIVE
+        if (sortBy) {
+            let data
+
+            // Category selected
+            if (selectedCategory) {
+                data = await getAllProductsByCategory(selectedCategory, signal)
+            }
+
+            // All categories
+            else {
+                data = await getAllProducts(signal)
+            }
+
+            if (signal.aborted) return
+
+            let filteredProducts = data.products
+
+            // Search inside the selected dataset
+            if (debouncedSearch) {
+                const query = debouncedSearch.toLowerCase()
+
+                filteredProducts = filteredProducts.filter((product) => {
+                    return (
+                        product.title?.toLowerCase().includes(query) ||
+                        product.description?.toLowerCase().includes(query) ||
+                        product.brand?.toLowerCase().includes(query)
+                    )
+                })
+            }
+
+            // Sort
+            const sortedProducts = sortProducts(filteredProducts)
+
+            // Pagination
+            const paginatedProducts = sortedProducts.slice(skip, skip + pageSize)
+
+            setProducts(paginatedProducts)
+            setTotalProducts(sortedProducts.length)
+            setTotalPages(Math.ceil(sortedProducts.length / pageSize))
+
+            return
+        }
+
+        // NO SORTING
         let data
-        
+
+        // Categor + Search
+        if (selectedCategory && debouncedSearch) {
+            data = await getAllProductsByCategory(selectedCategory, signal)
+            
+            if (signal.aborted) return
+
+            const query = debouncedSearch.toLowerCase()
+
+            const filteredProducts = data.products.filter((product) => {
+                return (
+                    product.title?.toLowerCase().includes(query) ||
+                    product.description?.toLowerCase().includes(query) ||
+                    product.brand?.toLowerCase().includes(query)
+                )
+            })
+
+            const sortedProducts = sortProducts(filteredProducts)
+
+            const total = sortedProducts.length
+
+            const paginatedProducts = sortedProducts.slice(skip, skip+pageSize)
+
+            setProducts(paginatedProducts)
+            setTotalProducts(total)
+            setTotalPages(Math.ceil(total / pageSize))
+
+            return
+        }
+
+        // Category only
         if (selectedCategory) {
             data = await getProductsByCategory(selectedCategory, pageSize, skip, signal)
-        } else if (debouncedSearch) {
+        } 
+        // Search only
+        else if (debouncedSearch) {
             data = await searchProducts(debouncedSearch, pageSize, skip, signal)
-        } else {
+        } 
+        // All products
+        else {
             data = await getProducts(pageSize, skip, signal)
         }
+
+        if (signal.aborted) return
 
         if (data?.products) {
             setProducts(data.products)
@@ -62,7 +184,7 @@ function Products() {
         })
 
         return () => controller.abort()
-    }, [page, pageSize, debouncedSearch, selectedCategory])
+    }, [page, pageSize, debouncedSearch, selectedCategory, sortBy])
 
     useEffect(() => {
         const controller = new AbortController()
@@ -104,7 +226,7 @@ function Products() {
                     <select value={selectedCategory} onChange={(e) => {
                         setSelectedCategory(e.target.value)
                         setPage(1)
-                    }} className='bg-[#dbd7d7] text-sm border text-slate-700 border-slate-200 rounded pl-3 pr-8 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md cursor-pointer'>
+                    }} className='select-primary'>
                         <option value="">
                             All Categories
                         </option>
@@ -113,6 +235,19 @@ function Products() {
                                 {category.name}
                             </option>
                         })}
+                    </select>
+
+                    <select value={sortBy} onChange={(e) => {
+                        setSortBy(e.target.value)
+                        setPage(1)
+                    }} className='select-primary'>
+                        <option value="">Default Sort</option>
+                        <option value="price-asc">Price: Low → High</option>
+                        <option value="price-desc">Price: High → Low</option>
+                        <option value="rating-asc">Rating: Low → High</option>
+                        <option value="rating-desc">Rating: High → Low</option>
+                        <option value="title-asc">Title: A → Z</option>
+                        <option value="title-desc">Title: Z → A</option>
                     </select>
 
                     <button className='btn-primary mr-5' onClick={handleLogout}>Logout</button>
@@ -184,7 +319,7 @@ function Products() {
                     setPageSize(Number(e.target.value))
                     setPage(1)
                 }}
-                className='bg-[#dbd7d7] text-sm border text-slate-700 border-slate-200 rounded focus:outline-none focus:border-slate-400 focus:shadow-md cursor-pointer'>
+                className='select-primary px-2! py-1!'>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
                 <option value={50}>50</option>

@@ -34,3 +34,21 @@ export const getProductsByCategory = async (category, limit, skip, signal) => {
     
     return res.data
 }
+
+export const getAllProductsByCategory = async (category, signal) => {
+    const res = await api.get(`/products/category/${encodeURIComponent(category)}`, {
+        params: {limit: 0},
+        signal,
+    })
+    
+    return res.data
+}
+
+export const getAllProducts = async (signal) => {
+    const res = await api.get(`/products`, {
+        params: {limit: 0},
+        signal,
+    })
+
+    return res.data
+}
