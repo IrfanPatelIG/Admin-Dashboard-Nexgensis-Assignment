@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../App.css'
-import { getProducts, searchProducts } from '../api/productApi'
+import { getProducts, searchProducts, getCategories, getProductsByCategory } from '../api/productApi'
 
 function Products() {
     const navigate = useNavigate()
@@ -16,6 +16,10 @@ function Products() {
     const [search, setSearch] = useState("")
     const [debouncedSearch, setDebouncedSearch] = useState("")
 
+    const [categories, setCategories] = useState([])
+    const [selectedCategory, setSelectedCategory] = useState("")
+
+
     useEffect(() => {
         const searchTimer = setTimeout(() => {
             console.log("Seatching product with debounce")
@@ -29,9 +33,15 @@ function Products() {
     const fetchProducts = async (signal) => {
         const skip = (page - 1) * pageSize
 
-        const data = debouncedSearch ? 
-            await searchProducts(debouncedSearch, pageSize, skip, signal) :
-            await getProducts(pageSize, skip, signal)  // Data is comming from here via productApi->Axios
+        let data
+        
+        if (selectedCategory) {
+            data = await getProductsByCategory(selectedCategory, pageSize, skip, signal)
+        } else if (debouncedSearch) {
+            data = await searchProducts(debouncedSearch, pageSize, skip, signal)
+        } else {
+            data = await getProducts(pageSize, skip, signal)
+        }
 
         if (data?.products) {
             setProducts(data.products)
@@ -45,13 +55,30 @@ function Products() {
         const controller = new AbortController()
 
         fetchProducts(controller.signal).catch((error) => {
-            if (error.name === "CanceledError") return
-            if (error.code === "ERR_CANCELED") return
+            if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
+                return
+            }
             console.error("Failed to fetch products:", error)
         })
 
         return () => controller.abort()
-    }, [page, pageSize, debouncedSearch])
+    }, [page, pageSize, debouncedSearch, selectedCategory])
+
+    useEffect(() => {
+        const controller = new AbortController()
+
+        getCategories(controller.signal).then((data) => {
+            setCategories(data)
+        })
+        .catch((error) => {
+            if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
+                return
+            }
+            console.error("Failed to fetch categories:", error)
+        })
+
+        return () => controller.abort()
+    }, [])
 
     const selectedPageHandler = (selectedPage) => {
         if (selectedPage > 0 && selectedPage <= totalPages) {
@@ -68,12 +95,26 @@ function Products() {
         <div className='w-screen App font-sans'>
             <nav className='w-full flex flex-wrap gap-4 justify-between items-center py-4 px-5 sticky top-0 bg-secondary z-10'>
                 <h1 className='text-3xl font-bold '>Products</h1>
-                <div className='flex gap-3 items-center'>
+                <div className='flex flex-wrap justify-end gap-3 items-center'>
                     <input type="search" value={search} onChange={(e) => {
                         setSearch(e.target.value)
                         setPage(1)
-                    }} placeholder='Search Products..' 
-                        className='px-3 py-2 border rounded'/>
+                    }} placeholder='Search Products..' className='px-3 py-2 border rounded'/>
+
+                    <select value={selectedCategory} onChange={(e) => {
+                        setSelectedCategory(e.target.value)
+                        setPage(1)
+                    }} className='bg-[#dbd7d7] text-sm border text-slate-700 border-slate-200 rounded pl-3 pr-8 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md cursor-pointer'>
+                        <option value="">
+                            All Categories
+                        </option>
+                        {categories.map((category) => {
+                            return <option key={category.slug} value={category.slug}>
+                                {category.name}
+                            </option>
+                        })}
+                    </select>
+
                     <button className='btn-primary mr-5' onClick={handleLogout}>Logout</button>
                 </div>
             </nav>
@@ -142,7 +183,8 @@ function Products() {
                 onChange={(e) => {
                     setPageSize(Number(e.target.value))
                     setPage(1)
-                }}>
+                }}
+                className='bg-[#dbd7d7] text-sm border text-slate-700 border-slate-200 rounded focus:outline-none focus:border-slate-400 focus:shadow-md cursor-pointer'>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
                 <option value={50}>50</option>
