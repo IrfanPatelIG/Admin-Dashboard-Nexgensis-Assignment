@@ -1,5 +1,6 @@
 import { getProducts, searchProducts, 
         getProductsByCategory, getAllProductsByCategory, getAllProducts } from '../api/productApi'
+import { getProductById } from '../api/productApi'
 
 export const sortProducts = (products, sortBy) => {
     const sortedProducts = [...products]
@@ -137,4 +138,12 @@ export const fetchProductData = async ({page, pageSize, debouncedSearch, selecte
         total: data.total,
         totalPages: Math.ceil(data.total / pageSize),
     }
+}
+
+export const fetchProductById = async (id, signal) => {
+    const product = await getProductById(id, signal)
+
+    if (signal.aborted) return null
+
+    return product
 }

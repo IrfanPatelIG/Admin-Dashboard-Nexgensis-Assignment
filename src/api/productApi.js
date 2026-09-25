@@ -52,3 +52,9 @@ export const getAllProducts = async (signal) => {
 
     return res.data
 }
+
+export const getProductById = async (id, signal) => {
+    const res = await api.get(`/products/${id}`, {signal,})
+
+    return res.data
+}

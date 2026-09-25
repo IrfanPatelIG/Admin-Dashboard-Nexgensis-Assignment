@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Products from "./pages/Products";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProductDetails from "./pages/ProductDetails";
 
 function App() {
   return (
@@ -17,6 +18,14 @@ function App() {
           } />
 
         <Route path="*" element={<Navigate to="/products" replace />} />
+      
+        <Route path="/products/:id" element={
+          <ProtectedRoute>
+            <ProductDetails />
+          </ProtectedRoute>
+        }>
+
+        </Route>
       </Routes>
     </BrowserRouter>
   );

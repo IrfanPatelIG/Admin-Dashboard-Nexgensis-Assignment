@@ -191,7 +191,8 @@ function Products() {
                     </thead>
                     <tbody className="bg-[#181818] w-full">
                         {products.map((prod) => {
-                            return <tr key={prod.id} className='hover:bg-[#1c1b1b] cursor-pointer w-full'>
+                            return <tr key={prod.id} className='hover:bg-[#1c1b1b] cursor-pointer w-full'
+                                    onClick={() => { navigate(`/products/${prod.id}`) }}>
                                 <td className='table-data-cell'>{prod.id}</td>
                                 <td className='table-data-cell'><img className='h-35 mx-auto object-cover' src={prod.thumbnail} alt={prod.title} /></td>
                                 <td className='table-data-cell'><span>{prod.title}</span></td>
@@ -206,7 +207,8 @@ function Products() {
                 {/* Mobile: Cards */}
                 <div className='md:hidden flex flex-col gap-4 my-3'>
                     {products.map((prod) => {
-                        return <div className='h-fit w-[95%] mx-auto p-2 bg-product-card hover:bg-[#212121] hover:scale-105 hover:rounded-2xl transition-all ease-in-out rounded' key={prod.id}>
+                        return <div onClick={() => { navigate(`/products/${prod.id}`) }} 
+                                className='h-fit w-[95%] mx-auto p-2 bg-product-card hover:bg-[#212121] hover:scale-105 hover:rounded-2xl transition-all ease-in-out rounded' key={prod.id}>
                             <img className='w-full h-50 mb-2 object-contain border-b' src={prod.thumbnail} alt={prod.title} />
                             <div className='flex gap-4 flex-col'>
                                 <div className='text-2xl'>{prod.title}</div>
