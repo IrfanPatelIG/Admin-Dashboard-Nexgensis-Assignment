@@ -156,9 +156,9 @@ function Products() {
                             setPage(1)
                             updateUrl({newPage: 1, newSearch: value})
                         }} placeholder='Search Products..' 
-                        className='max-[460px]:w-full lg:w-[380px] max-lg:w-[270px] px-3 py-2 border rounded '/>
+                        className='max-[460px]:w-full lg:w-[380px] max-lg:w-[270px] px-3 py-2 border rounded duration-500 ease-in-out'/>
 
-                        <div className='flex flex-wrap gap-2 items-center justify-end 
+                        <div className='flex flex-wrap gap-2 items-center justify-end *:duration-500 *:ease-in-out
                                 max-[620px]:justify-between *:max-[400px]:text-[14px] *:max-[400px]:p-2 *:max-[425px]:w-[48%] 
                                 *:max-[425px]:justify-between *:max-[200px]:flex-wrap max-300'>
                             <select value={selectedCategory} onChange={(e) => {
