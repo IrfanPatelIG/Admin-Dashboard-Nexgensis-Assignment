@@ -12,6 +12,7 @@ function ProductDetails() {
   const [notFound, setNotFound] = useState(false);
 
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState("");
 
   const handleDelete = async () => {
       const confirmed = window.confirm(`Are you sure you want to delete "${product.title}"?`)
@@ -23,13 +24,20 @@ function ProductDetails() {
       setDeleting(true)
 
       try {
-          await removeProduct(product.id, controller.signal)
+          setDeleteError("");
+
+          let result = await removeProduct(product.id, controller.signal)
+
+          if (!result || controller.signal.aborted) return;
+
           navigate("/products")
       } catch (error) {
           if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
               return
           }
+
           console.error("Failed to delete product:", error)
+          setDeleteError("Failed to delete product. Please try again.");
       } finally {
           setDeleting(false)
       }
@@ -92,17 +100,23 @@ function ProductDetails() {
           ← Back to Products
         </button>
 
-        <button className="btn-primary mb-5 bg-yellow-500"
+        <button className="btn-primary mb-5 bg-yellow-500 hover:bg-yellow-600"
           onClick={() => navigate(`/products/${product.id}/edit`)}>
           Edit Product
         </button>
 
-        <button className="btn-primary mb-5 bg-red-700!"
+        <button className="btn-primary mb-5 bg-red-700 hover:bg-red-800"
           onClick={handleDelete}
           disabled={deleting}>
           {deleting? "Deleting..." : "Delete Product"}
         </button>
       </div>
+
+      {deleteError && (
+          <p className="text-red-500 mb-4">
+              {deleteError}
+          </p>
+      )}
 
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-6">{product.title}</h1>

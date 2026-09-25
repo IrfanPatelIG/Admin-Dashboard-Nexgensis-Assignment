@@ -22,6 +22,7 @@ function ProductForm() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");   
 
   useEffect(() => {
     if (!isEditMode) return;
@@ -49,7 +50,7 @@ function ProductForm() {
 
         console.error("Failed to load product:", error);
       } finally {
-        if (!controller.signal.aborted) {
+        if (!controller.signal?.aborted) {
           setLoading(false);
         }
       }
@@ -107,27 +108,33 @@ function ProductForm() {
     setSaving(true);
 
     try {
-      const productData = {
+        setSaveError("");
+        const productData = {
         ...formData,
         price: Number(formData.price),
         stock: Number(formData.stock),
-      };
+        };
 
-      if (isEditMode) {
-        await editProduct(id, productData, controller.signal);
-      } else {
-        await createProduct(productData, controller.signal);
-      }
+        let result;
 
-      navigate("/products");
+        if (isEditMode) {
+            result = await editProduct(id, productData, controller.signal);
+        } else {
+            result = await createProduct(productData, controller.signal);
+        }
+
+        if (!result || controller.signal?.aborted) return;
+
+        navigate("/products");
     } catch (error) {
-      if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
-        return;
-      }
+        if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
+            return;
+        }
 
-      console.error("Failed to save product:", error);
+        console.error("Failed to save product:", error);
+        setSaveError("Failed to save product. Please try again.");
     } finally {
-      setSaving(false);
+        setSaving(false);
     }
   };
 
@@ -150,6 +157,12 @@ function ProductForm() {
         <h1 className="text-3xl font-bold mb-6">
           {isEditMode ? "Edit Product" : "Add Product"}
         </h1>
+
+        {saveError && (
+            <p className="text-red-500 mb-4">
+                {saveError}
+            </p>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>

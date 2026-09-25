@@ -64,7 +64,7 @@ export const fetchProductData = async ({page, pageSize, debouncedSearch, selecte
             data = await getAllProducts(signal)
         }
 
-        if (signal.aborted) return null
+        if (signal?.aborted) return null
 
         let filteredProducts = data.products
 
@@ -90,7 +90,7 @@ export const fetchProductData = async ({page, pageSize, debouncedSearch, selecte
 
         const data = await getAllProductsByCategory(selectedCategory, signal)
 
-        if (signal.aborted) return null
+        if (signal?.aborted) return null
 
         const filteredProducts = filterProducts(data.products, debouncedSearch)
 
@@ -144,7 +144,7 @@ export const fetchProductData = async ({page, pageSize, debouncedSearch, selecte
 export const fetchProductById = async (id, signal) => {
     const product = await getProductById(id, signal)
 
-    if (signal.aborted) return null
+    if (signal?.aborted) return null
 
     return product
 }
