@@ -4,7 +4,7 @@
 A responsive React admin dashboard built with Vite and DummyJSON API.
 
 #
-### Live: [View live](https://solariq-live.vercel.app/)
+### Live: [View live](https://admin-dashboard-nexgensis.vercel.app/login)
 #
 
 ## Setup
