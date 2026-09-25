@@ -1,177 +1,77 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import '../App.css'
-import { getProducts, searchProducts, 
-        getCategories, getProductsByCategory, 
-        getAllProductsByCategory, getAllProducts } from '../api/productApi'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { getCategories } from '../api/productApi'
+import { fetchProductData } from '../controllers/productController'
 
 function Products() {
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
     
     const [products, setProducts] = useState([])
-    const [page, setPage] = useState(1)
+    const [page, setPage] = useState(Number(searchParams.get("page")) || 1)
     const [totalPages, setTotalPages] = useState(0)
 
     const [pageSize, setPageSize] = useState(10)
     const [totalProducts, setTotalProducts] = useState(0)
 
-    const [search, setSearch] = useState("")
-    const [debouncedSearch, setDebouncedSearch] = useState("")
+    const [search, setSearch] = useState(searchParams.get("search") || "")
+    const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get("search") || "")
 
     const [categories, setCategories] = useState([])
-    const [selectedCategory, setSelectedCategory] = useState("")
+    const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "")
 
-    const [sortBy, setSortBy] = useState("")
+    const [sortBy, setSortBy] = useState(searchParams.get("sort") || "")
 
 
-    useEffect(() => {
-        const searchTimer = setTimeout(() => {
-            console.log("Seatching product with debounce")
-            setDebouncedSearch(search.trim())
-        }, 500)
+    const updateUrl = ({
+        newPage = page,
+        newSearch = search,
+        newCategory = selectedCategory,
+        newSort = sortBy,
+        replace = false
+    }) => {
+        const params = new URLSearchParams()
 
-        return () => clearTimeout(searchTimer)
-    }, [search])
+        if (newPage > 1) params.set("page", newPage)
 
-    const sortProducts = (products) => {
-        const sortedProducts = [...products]
+        if (newSearch.trim()) params.set("search", newSearch.trim())
 
-        switch (sortBy) {
-            case "price-asc":
-                return sortedProducts.sort((a, b) => a.price - b.price)
+        if (newCategory) params.set("category", newCategory)
 
-            case "price-desc":
-                return sortedProducts.sort((a, b) => b.price - a.price)
+        if (newSort) params.set("sort", newSort)
 
-            case "rating-asc":
-                return sortedProducts.sort((a, b) => a.rating - b.rating)
-
-            case "rating-desc":
-                return sortedProducts.sort((a, b) => b.rating - a.rating)
-
-            case "title-asc":
-                return sortedProducts.sort((a, b) =>
-                    a.title.localeCompare(b.title)
-                )
-
-            case "title-desc":
-                return sortedProducts.sort((a, b) =>
-                    b.title.localeCompare(a.title)
-                )
-
-            default:
-                return sortedProducts
-        }
-    }
-
-    const paginateProducts = (products, skip) => {
-        const sortedProducts = sortProducts(products)
-
-        return sortedProducts.slice(skip, skip + pageSize)
+        setSearchParams(params, {replace})
     }
 
     // https://dummyjson.com/products?limit=100&skip=10
     const fetchProducts = async (signal) => {
-        const skip = (page - 1) * pageSize
+        const data = await fetchProductData({page, pageSize, debouncedSearch, selectedCategory, sortBy, signal,})
 
-        // SORTING ACTIVE
-        if (sortBy) {
-            let data
+        if (!data || signal.aborted) return
 
-            // Category selected
-            if (selectedCategory) {
-                data = await getAllProductsByCategory(selectedCategory, signal)
-            }
+        setProducts(data.products)
+        setTotalProducts(data.total)
+        setTotalPages(data.totalPages)
 
-            // All categories
-            else {
-                data = await getAllProducts(signal)
-            }
-
-            if (signal.aborted) return
-
-            let filteredProducts = data.products
-
-            // Search inside the selected dataset
-            if (debouncedSearch) {
-                const query = debouncedSearch.toLowerCase()
-
-                filteredProducts = filteredProducts.filter((product) => {
-                    return (
-                        product.title?.toLowerCase().includes(query) ||
-                        product.description?.toLowerCase().includes(query) ||
-                        product.brand?.toLowerCase().includes(query)
-                    )
-                })
-            }
-
-            // Sort
-            const sortedProducts = sortProducts(filteredProducts)
-
-            // Pagination
-            const paginatedProducts = sortedProducts.slice(skip, skip + pageSize)
-
-            setProducts(paginatedProducts)
-            setTotalProducts(sortedProducts.length)
-            setTotalPages(Math.ceil(sortedProducts.length / pageSize))
-
-            return
-        }
-
-        // NO SORTING
-        let data
-
-        // Categor + Search
-        if (selectedCategory && debouncedSearch) {
-            data = await getAllProductsByCategory(selectedCategory, signal)
-            
-            if (signal.aborted) return
-
-            const query = debouncedSearch.toLowerCase()
-
-            const filteredProducts = data.products.filter((product) => {
-                return (
-                    product.title?.toLowerCase().includes(query) ||
-                    product.description?.toLowerCase().includes(query) ||
-                    product.brand?.toLowerCase().includes(query)
-                )
-            })
-
-            const sortedProducts = sortProducts(filteredProducts)
-
-            const total = sortedProducts.length
-
-            const paginatedProducts = sortedProducts.slice(skip, skip+pageSize)
-
-            setProducts(paginatedProducts)
-            setTotalProducts(total)
-            setTotalPages(Math.ceil(total / pageSize))
-
-            return
-        }
-
-        // Category only
-        if (selectedCategory) {
-            data = await getProductsByCategory(selectedCategory, pageSize, skip, signal)
-        } 
-        // Search only
-        else if (debouncedSearch) {
-            data = await searchProducts(debouncedSearch, pageSize, skip, signal)
-        } 
-        // All products
-        else {
-            data = await getProducts(pageSize, skip, signal)
-        }
-
-        if (signal.aborted) return
-
-        if (data?.products) {
-            setProducts(data.products)
-            setTotalPages(Math.ceil(data.total/pageSize)) // because it gives a fraction value
-            setTotalProducts(data.total)
-        }
         console.log(data)
     }
+
+    useEffect(() => {
+        const searchTimer = setTimeout(() => {
+            console.log("Seatching product with debounce")
+            const value = search.trim()
+            setDebouncedSearch(value)
+
+            updateUrl({
+                newPage: 1,
+                newSearch: value,
+                replace: true
+            })
+        }, 500)
+
+        return () => clearTimeout(searchTimer)
+    }, [search])
 
     useEffect(() => {
         const controller = new AbortController()
@@ -185,6 +85,19 @@ function Products() {
 
         return () => controller.abort()
     }, [page, pageSize, debouncedSearch, selectedCategory, sortBy])
+
+    useEffect(() => {
+        const urlPage = Number(searchParams.get("page")) || 1
+        const urlSearch = searchParams.get("search") || ""
+        const urlCategory = searchParams.get("category") || ""
+        const urlSort = searchParams.get("sort") || ""
+
+        setPage(urlPage)
+        setSearch(urlSearch)
+        setDebouncedSearch(urlSearch)
+        setSelectedCategory(urlCategory)
+        setSortBy(urlSort)
+    }, [searchParams])
 
     useEffect(() => {
         const controller = new AbortController()
@@ -205,6 +118,7 @@ function Products() {
     const selectedPageHandler = (selectedPage) => {
         if (selectedPage > 0 && selectedPage <= totalPages) {
             setPage(selectedPage)
+            updateUrl({newPage: selectedPage})
         }
     }
 
@@ -219,13 +133,17 @@ function Products() {
                 <h1 className='text-3xl font-bold '>Products</h1>
                 <div className='flex flex-wrap justify-end gap-3 items-center'>
                     <input type="search" value={search} onChange={(e) => {
-                        setSearch(e.target.value)
+                        const value = e.target.value
+                        setSearch(value)
                         setPage(1)
+                        updateUrl({newPage: 1, newSearch: value})
                     }} placeholder='Search Products..' className='px-3 py-2 border rounded'/>
 
                     <select value={selectedCategory} onChange={(e) => {
-                        setSelectedCategory(e.target.value)
+                        const value = e.target.value
+                        setSelectedCategory(value)
                         setPage(1)
+                        updateUrl({newPage: 1, newCategory: value})
                     }} className='select-primary'>
                         <option value="">
                             All Categories
@@ -238,8 +156,10 @@ function Products() {
                     </select>
 
                     <select value={sortBy} onChange={(e) => {
-                        setSortBy(e.target.value)
+                        const value = e.target.value
+                        setSortBy(value)
                         setPage(1)
+                        updateUrl({newPage:1, newSort: value})
                     }} className='select-primary'>
                         <option value="">Default Sort</option>
                         <option value="price-asc">Price: Low → High</option>
@@ -316,7 +236,8 @@ function Products() {
 
                 <select value={pageSize}
                 onChange={(e) => {
-                    setPageSize(Number(e.target.value))
+                    const value = Number(e.target.value)
+                    setPageSize(value)
                     setPage(1)
                 }}
                 className='select-primary px-2! py-1!'>
