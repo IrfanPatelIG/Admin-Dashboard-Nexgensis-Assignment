@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "../App.css";
 import { fetchProductById } from "../controllers/productController";
+import { removeProduct } from "../controllers/crudController";
 
 function ProductDetails() {
   const { id } = useParams();
@@ -9,6 +10,30 @@ function ProductDetails() {
 
   const [product, setProduct] = useState(null);
   const [notFound, setNotFound] = useState(false);
+
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+      const confirmed = window.confirm(`Are you sure you want to delete "${product.title}"?`)
+
+      if (!confirmed) return
+
+      const controller = new AbortController()
+
+      setDeleting(true)
+
+      try {
+          await removeProduct(product.id, controller.signal)
+          navigate("/products")
+      } catch (error) {
+          if (error.name === "CanceledError" || error.code === "ERR_CANCELED") {
+              return
+          }
+          console.error("Failed to delete product:", error)
+      } finally {
+          setDeleting(false)
+      }
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -61,12 +86,23 @@ function ProductDetails() {
 
   return (
     <div className="w-screen App font-sans p-5">
-      <button
-        className="btn-primary mb-5"
-        onClick={() => navigate("/products")}
-      >
-        ← Back to Products
-      </button>
+      <div className="flex gap-3 mb-5">
+        <button className="btn-primary mb-5"
+          onClick={() => navigate("/products")}>
+          ← Back to Products
+        </button>
+
+        <button className="btn-primary mb-5 bg-yellow-500"
+          onClick={() => navigate(`/products/${product.id}/edit`)}>
+          Edit Product
+        </button>
+
+        <button className="btn-primary mb-5 bg-red-700!"
+          onClick={handleDelete}
+          disabled={deleting}>
+          {deleting? "Deleting..." : "Delete Product"}
+        </button>
+      </div>
 
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold mb-6">{product.title}</h1>

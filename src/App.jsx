@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Products from "./pages/Products";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductDetails from "./pages/ProductDetails";
+import ProductForm from "./pages/ProductForm";
 
 function App() {
   return (
@@ -11,21 +12,31 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
-        <Route path="/products" element={
+          <Route path="/products" element={
             <ProtectedRoute>
               <Products />
             </ProtectedRoute>
           } />
 
-        <Route path="*" element={<Navigate to="/products" replace />} />
-      
-        <Route path="/products/:id" element={
+          <Route path="/products/new" element={
+            <ProtectedRoute>
+              <ProductForm />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/products/:id/edit" element={
+            <ProtectedRoute>
+              <ProductForm />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/products/:id" element={
           <ProtectedRoute>
             <ProductDetails />
           </ProtectedRoute>
-        }>
+          } />
 
-        </Route>
+          <Route path="*" element={<Navigate to="/products" replace />} />
       </Routes>
     </BrowserRouter>
   );

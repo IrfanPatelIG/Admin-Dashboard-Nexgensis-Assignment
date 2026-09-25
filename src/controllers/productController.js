@@ -1,6 +1,7 @@
 import { getProducts, searchProducts, 
-        getProductsByCategory, getAllProductsByCategory, getAllProducts } from '../api/productApi'
-import { getProductById } from '../api/productApi'
+        getProductsByCategory, getAllProductsByCategory, 
+        getAllProducts, getProductById } from '../api/productApi'
+
 
 export const sortProducts = (products, sortBy) => {
     const sortedProducts = [...products]

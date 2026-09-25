@@ -58,3 +58,21 @@ export const getProductById = async (id, signal) => {
 
     return res.data
 }
+
+export const addProduct = async (product, signal) => {
+    const res = await api.post(`/products/add`, product, {signal,})
+
+    return res.data
+}
+
+export const updateProduct = async (id, product, signal) => {
+    const res = await api.put(`/products/${id}`, product, {signal,})
+
+    return res.data
+}
+
+export const deleteProduct = async (id, signal) => {
+    const res = await api.delete(`/products/${id}`, {signal,})
+
+    return res.data
+}

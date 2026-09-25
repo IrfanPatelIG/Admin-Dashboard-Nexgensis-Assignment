@@ -170,6 +170,8 @@ function Products() {
                         <option value="title-desc">Title: Z → A</option>
                     </select>
 
+                    <button className='btn-primary bg-green-600!' onClick={() => navigate("/products/new")}>+ Add Product</button>
+
                     <button className='btn-primary mr-5' onClick={handleLogout}>Logout</button>
                 </div>
             </nav>
