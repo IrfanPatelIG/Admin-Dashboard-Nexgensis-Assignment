@@ -18,9 +18,9 @@ function Products() {
 
     useEffect(() => {
         const searchTimer = setTimeout(() => {
-            setDebouncedSearch(search)
-            setPage(1)
-        }, 400)
+            console.log("Seatching product with debounce")
+            setDebouncedSearch(search.trim())
+        }, 500)
 
         return () => clearTimeout(searchTimer)
     }, [search])
@@ -29,7 +29,7 @@ function Products() {
     const fetchProducts = async (signal) => {
         const skip = (page - 1) * pageSize
 
-        const data = debouncedSearch.trim() ? 
+        const data = debouncedSearch ? 
             await searchProducts(debouncedSearch, pageSize, skip, signal) :
             await getProducts(pageSize, skip, signal)  // Data is comming from here via productApi->Axios
 
@@ -50,8 +50,8 @@ function Products() {
             console.error("Failed to fetch products:", error)
         })
 
-        return controller.abort()
-    }, [page, pageSize. debouncedSearch])
+        return () => controller.abort()
+    }, [page, pageSize, debouncedSearch])
 
     const selectedPageHandler = (selectedPage) => {
         if (selectedPage > 0 && selectedPage <= totalPages) {
@@ -69,14 +69,17 @@ function Products() {
             <nav className='w-full flex flex-wrap gap-4 justify-between items-center py-4 px-5 sticky top-0 bg-secondary z-10'>
                 <h1 className='text-3xl font-bold '>Products</h1>
                 <div className='flex gap-3 items-center'>
-                    <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder='Search Products..' 
+                    <input type="search" value={search} onChange={(e) => {
+                        setSearch(e.target.value)
+                        setPage(1)
+                    }} placeholder='Search Products..' 
                         className='px-3 py-2 border rounded'/>
-                    <button className='btn-primary' onClick={handleLogout}>Logout</button>
+                    <button className='btn-primary mr-5' onClick={handleLogout}>Logout</button>
                 </div>
             </nav>
 
         {products.length > 0 && (
-            <div className='w-full px-5'>
+            <div className='w-[98%] px-5'>
 
                 {/* Desktop: Table */}
                 <table className='hidden md:table table-fixed w-full border mx-auto my-4 border-gray-400'>
