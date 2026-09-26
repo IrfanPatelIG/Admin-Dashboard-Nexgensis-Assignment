@@ -47,7 +47,7 @@ function NavBar(props) {
             <div className='w-full flex gap-3 items-center justify-end 
                     max-[800px]:flex-wrap max max-[620px]:w-full *:max-[620px]:w-full! max-[620px]:justify-between max-[430px]:flex-wrap-reverse'>
                 <input type="search" value={props.search} onChange={handleSearchInChange} placeholder='Search Products..' 
-                className='max-[460px]:w-full lg:w-[380px] max-lg:w-[270px] px-3 py-2 border rounded duration-500 ease-in-out'/>
+                className='max-[460px]:w-full lg:w-95 max-lg:w-67.5 px-3 py-2 border rounded duration-500 ease-in-out'/>
 
                 <div className='flex flex-wrap gap-2 items-center justify-end *:duration-500 *:ease-in-out
                         max-[620px]:justify-between *:max-[400px]:text-[14px] *:max-[400px]:p-2 *:max-[425px]:w-[48%] 
